@@ -1,0 +1,275 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+@font-face {
+    font-family: 'Digital7';
+    src: url('digital-7 (mono).ttf');
+}
+
+@font-face {
+    font-family: 'Orbitron';
+    src: url('Orbitron-ExtraBold.ttf');
+}
+
+body {
+    height: 100vh;
+    font-family: Orbitron, Digital7, monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 16px;
+    background: #e0e0e0;
+}
+
+main {
+    width: 90%;
+    margin: 0 auto;
+}
+
+section {
+    display: flex;
+    max-height: 90vh;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 1rem;
+    background-color: #e0e0e0;
+    padding-top: 1rem;
+}
+
+header {
+    margin: 1rem 0;
+}
+
+
+.all-keys {
+    width: 90%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    grid-column-gap: 1rem;
+    grid-row-gap: 1rem;
+    margin-bottom: 1rem;
+    font-size: 1.6rem;
+    font-weight: normal;
+    padding: 1rem 0.6rem;
+    text-align: center;
+
+
+}
+
+.power {
+    grid-area: 1 / 1 / 2 / 2;
+}
+
+.display-area {
+    grid-area: 1/2/2/5;
+}
+
+#plus {
+    grid-area: 2 / 1 / 3 / 2;
+}
+
+#minus {
+    grid-area: 2 / 2 / 3 / 3;
+}
+
+#multiply {
+    grid-area: 2 / 3 / 3 / 4;
+}
+
+#divide {
+    grid-area: 2 / 4 / 3 / 5;
+}
+
+#1 {
+    grid-area: 3 / 1 / 4 / 2;
+}
+
+#2 {
+    grid-area: 3 / 2 / 4 / 3;
+}
+
+#3 {
+    grid-area: 3 / 3 / 4 / 4;
+}
+
+#4 {
+    grid-area: 4 / 1 / 5 / 2;
+}
+
+#5 {
+    grid-area: 4 / 2 / 5 / 3;
+}
+
+#6 {
+    grid-area: 4 / 3 / 5 / 4;
+}
+
+#7 {
+    grid-area: 5 / 1 / 6 / 2;
+}
+
+#8 {
+    grid-area: 5 / 2 / 6 / 3;
+}
+
+#9 {
+    grid-area: 5 / 3 / 6 / 4;
+}
+
+.clear-screen {
+    grid-area: 6 / 1 / 7 / 2;
+}
+
+#0 {
+    grid-area: 6 / 2 / 7 / 3;
+}
+
+.decimal-point {
+    grid-area: 6 / 3 / 7 / 4;
+}
+
+.equals-button {
+    grid-area: 3 / 4 / 7 / 5;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+button {
+    border: none !important;
+    background: #e0e0e0;
+    font-size: 1.6rem;
+    font-weight: normal;
+    width: 100%;
+    height: 100%;
+    border-radius: 0.4rem;
+    box-shadow:
+        4px 4px 8px #bebebe,
+        -4px -4px 8px #ffff;
+    font-family: Orbitron, monospace;
+
+}
+
+button.active-keys:hover {
+    cursor: pointer;
+    color: cyan;
+    transition: all 0.2s ease;
+
+}
+
+button.active-keys:not(:hover) {
+    cursor: auto;
+    color: darkslategray;
+    transition: all 0.2s ease;
+
+}
+
+button:active {
+    box-shadow:
+        inset 3px 3px 5px #bebebe,
+        inset -3px -3px 5px #ffff;
+
+}
+
+button.disabled-keys {
+    pointer-events: none;
+    color: #bebebe;
+    
+}
+
+button.active-keys {
+    pointer-events: auto;
+    color: darkslategray;
+
+}
+
+.power button {
+    cursor: pointer !important;
+}
+
+.green-key {
+    color: cyan !important;
+    transition: all 0.2s ease;
+
+}
+
+.green-key:hover{
+    color:#ff3131 !important;
+    transition: all 0.2s ease;
+
+
+}
+
+.red-key {
+    color: #ff3131 !important;
+    transition: all 0.2s ease;
+
+}
+.red-key:hover {
+    color: cyan !important;
+    transition: all 0.2s ease;
+
+}
+
+
+@media (max-width: 300px) {
+    min-width: 100%;
+}
+
+.calculator {
+    max-width: 450px;
+    margin: 0 auto;
+    box-shadow: 8px 8px 16px #bebebe,
+    -8px -8px 16px #ffff;
+
+
+}
+
+.display-area {
+    border-radius: 0.4rem;
+    background: #e0e0e0;
+    width: 100%;
+    height: 60px;
+    font-size: 2.4rem;
+    font-family: Digital7, sans-serif;
+    text-align: right;
+    padding: 0.8rem 0.8rem;
+    display: flex;
+    justify-content: flex-end;
+    overflow: hidden;
+    border: none !important;
+    box-shadow:
+        inset 4px 4px 8px #bebebe,
+        inset -4px -4px 8px #ffff;
+    position: relative;
+
+}
+
+.lcd-burn {
+    z-index: 1;
+    color: #c8c8c8;
+    position: absolute;
+}
+
+.lcd-real {
+    white-space: pre;
+    z-index: 20;
+    color: darkslategray;
+    position: absolute;
+    background: transparent !important;
+
+}
+
+.lcd-burn,
+.lcd-real {
+    font-family: 'Digital-7 Mono', monospace;
+    letter-spacing: 4px;
+
+    font-variant-numeric: tabular-nums;
+    font-kerning: none;
+
+}
