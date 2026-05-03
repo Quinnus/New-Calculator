@@ -6,12 +6,12 @@
 
 @font-face {
     font-family: 'Digital7';
-    src: url('digital-7 (mono).ttf');
+    src: url('./digital-7 (mono).ttf');
 }
 
 @font-face {
     font-family: 'Orbitron';
-    src: url('Orbitron-ExtraBold.ttf');
+    src: url('./Orbitron-ExtraBold.ttf');
 }
 
 body {
@@ -302,13 +302,13 @@ button.active-keys {
     text-shadow: none;
 }
 
-.equals-button button {
-    background: #071820;
-    border-color: #00e5ff;
-    color: #00e5ff;
-    text-shadow: 0 0 10px #00e5ff, 0 0 30px rgba(0, 229, 255, 0.4);
-    box-shadow: 0 0 20px rgba(0, 229, 255, 0.1), inset 0 0 20px rgba(0, 229, 255, 0.04);
-}
+/*.equals-button button {*/
+/*    background: #071820;*/
+/*    border-color: #00e5ff;*/
+/*    color: #00e5ff;*/
+/*    text-shadow: 0 0 10px #00e5ff, 0 0 30px rgba(0, 229, 255, 0.4);*/
+/*    box-shadow: 0 0 20px rgba(0, 229, 255, 0.1), inset 0 0 20px rgba(0, 229, 255, 0.04);*/
+/*}*/
 
 .equals-button button.disabled-keys {
     background: #16161c;
