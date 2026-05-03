@@ -12,7 +12,14 @@
         <title>Calculator</title>
     </head>
     <body>
-        <header></header>
+        <header>
+            <label class="theme-toggle" title="Toggle light/dark mode">
+                <span class="toggle-icon">☾</span>
+                <input type="checkbox" id="theme-checkbox">
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                <span class="toggle-icon">☀︎</span>
+            </label>
+        </header>
         <main>
             <section class="calculator">
                 <div class="all-keys" id="all-keys">
@@ -70,6 +77,12 @@
                     </div>
                     <div class="decimal-point">
                         <button id="decimal">.</button>
+                    </div>
+                    <div class="sign-toggle">
+                        <button id="sign-toggle">+/-</button>
+                    </div>
+                    <div class="backspace">
+                        <button id="backspace">⌫</button>
                     </div>
                     <div class="equals-button">
                         <button id="equals">=</button>
