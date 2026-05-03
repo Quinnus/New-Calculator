@@ -429,7 +429,7 @@ button.active-keys {
 
 .lcd-burn,
 .lcd-real {
-    font-family: 'Digital-7 Mono', monospace;
+    font-family: 'Digital7', monospace;
     letter-spacing: 4px;
     font-variant-numeric: tabular-nums;
     font-kerning: none;
