@@ -184,15 +184,15 @@ header {
 }
 
 .sign-toggle {
-    grid-area: 5 / 4 / 6 / 5;
+    grid-area: 4 / 4 / 5 / 5;
 }
 
 .backspace {
-    grid-area: 6 / 4 / 7 / 5;
+    grid-area: 3 / 4 / 4 / 5;
 }
 
 .equals-button {
-    grid-area: 3 / 4 / 5 / 5;
+    grid-area: 5 / 4 / 7 / 5;
     display: flex !important;
     align-items: center;
     justify-content: center;
@@ -302,13 +302,13 @@ button.active-keys {
     text-shadow: none;
 }
 
-.equals-button button {
-    background: #071820;
-    border-color: #00e5ff;
-    color: #00e5ff;
-    text-shadow: 0 0 10px #00e5ff, 0 0 30px rgba(0, 229, 255, 0.4);
-    box-shadow: 0 0 20px rgba(0, 229, 255, 0.1), inset 0 0 20px rgba(0, 229, 255, 0.04);
-}
+/*.equals-button button {*/
+/*    background: #071820;*/
+/*    border-color: #00e5ff;*/
+/*    color: #00e5ff;*/
+/*    text-shadow: 0 0 10px #00e5ff, 0 0 30px rgba(0, 229, 255, 0.4);*/
+/*    box-shadow: 0 0 20px rgba(0, 229, 255, 0.1), inset 0 0 20px rgba(0, 229, 255, 0.04);*/
+/*}*/
 
 .equals-button button.disabled-keys {
     background: #16161c;

@@ -498,3 +498,8 @@ body.light-mode .digit button {
 body.light-mode .toggle-icon {
     color: #9080c0;
 }
+
+#multiply-button{
+    padding-top: 1.5rem;
+
+}
