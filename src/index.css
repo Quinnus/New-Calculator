@@ -6,12 +6,12 @@
 
 @font-face {
     font-family: 'Digital7';
-    src: url('src/digital7.ttf');
+    src: url('digital7.ttf');
 }
 
 @font-face {
     font-family: 'Orbitron';
-    src: url('src/Orbitron-ExtraBold.ttf');
+    src: url('Orbitron-ExtraBold.ttf');
 }
 
 body {
