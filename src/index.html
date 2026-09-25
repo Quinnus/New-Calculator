@@ -2,11 +2,10 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <meta
-            name="viewport"
-            content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
-        />
-        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="A retro LCD-style calculator." />
+        <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48" />
+        <link rel="apple-touch-icon" href="apple-touch-icon.png" />
         <link href="index.css" rel="stylesheet" />
 
         <title>Calculator</title>
@@ -14,78 +13,78 @@
     <body>
         <header>
             <label class="theme-toggle" title="Toggle light/dark mode">
-                <span class="toggle-icon">☾</span>
-                <input type="checkbox" id="theme-checkbox">
-                <span class="toggle-track"><span class="toggle-thumb"></span></span>
-                <span class="toggle-icon">☀︎</span>
+                <span class="toggle-icon" aria-hidden="true">☾</span>
+                <input type="checkbox" id="theme-checkbox" aria-label="Light mode" />
+                <span class="toggle-track" aria-hidden="true"><span class="toggle-thumb"></span></span>
+                <span class="toggle-icon" aria-hidden="true">☀︎</span>
             </label>
         </header>
         <main>
-            <section class="calculator">
+            <section class="calculator" aria-label="Calculator">
                 <div class="all-keys" id="all-keys">
                     <div class="power">
-                        <button id="power-button">⏻</button>
+                        <button id="power-button" class="red-key" data-key="power" aria-label="Power" aria-pressed="false">⏻</button>
                     </div>
                     <div class="display-area">
-                        <div class="lcd-burn">888888888888</div>
-                        <div class="lcd-real" id="lcd-real"></div>
+                        <div class="lcd-burn" aria-hidden="true">888888888888</div>
+                        <div class="lcd-real" id="lcd-real" role="status" aria-live="polite"></div>
                     </div>
-                    <div class="operator" id="plus">
-                        <button>+</button>
+                    <div class="operator" id="key-plus">
+                        <button data-key="+" aria-label="Plus">+</button>
                     </div>
-                    <div class="operator" id="minus">
-                        <button>-</button>
+                    <div class="operator" id="key-minus">
+                        <button data-key="-" aria-label="Minus">-</button>
                     </div>
-                    <div class="operator" id="multiply">
-                        <button id="multiply-button">*</button>
+                    <div class="operator" id="key-multiply">
+                        <button data-key="*" aria-label="Multiply">×</button>
                     </div>
-                    <div class="operator" id="divide">
-                        <button>÷</button>
+                    <div class="operator" id="key-divide">
+                        <button data-key="/" aria-label="Divide">÷</button>
                     </div>
-                    <div class="digit" id="1">
-                        <button id="div7">1</button>
+                    <div class="digit" id="key-1">
+                        <button data-key="1">1</button>
                     </div>
-                    <div class="digit" id="2">
-                        <button id="div8">2</button>
+                    <div class="digit" id="key-2">
+                        <button data-key="2">2</button>
                     </div>
-                    <div class="digit" id="3">
-                        <button id="div9">3</button>
+                    <div class="digit" id="key-3">
+                        <button data-key="3">3</button>
                     </div>
-                    <div class="digit" id="4">
-                        <button id="div10">4</button>
+                    <div class="digit" id="key-4">
+                        <button data-key="4">4</button>
                     </div>
-                    <div class="digit" id="5">
-                        <button id="div11">5</button>
+                    <div class="digit" id="key-5">
+                        <button data-key="5">5</button>
                     </div>
-                    <div class="digit" id="6">
-                        <button id="div12">6</button>
+                    <div class="digit" id="key-6">
+                        <button data-key="6">6</button>
                     </div>
-                    <div class="digit" id="7">
-                        <button id="div13">7</button>
+                    <div class="digit" id="key-7">
+                        <button data-key="7">7</button>
                     </div>
-                    <div class="digit" id="8">
-                        <button id="div14">8</button>
+                    <div class="digit" id="key-8">
+                        <button data-key="8">8</button>
                     </div>
-                    <div class="digit" id="9">
-                        <button id="div15">9</button>
+                    <div class="digit" id="key-9">
+                        <button data-key="9">9</button>
                     </div>
                     <div class="clear-screen">
-                        <button id="clear">C</button>
+                        <button data-key="clear" aria-label="Clear">C</button>
                     </div>
-                    <div class="digit" id="0">
-                        <button id="div17">0</button>
+                    <div class="digit" id="key-0">
+                        <button data-key="0">0</button>
                     </div>
                     <div class="decimal-point">
-                        <button id="decimal">.</button>
+                        <button data-key="." aria-label="Decimal point">.</button>
                     </div>
                     <div class="sign-toggle">
-                        <button id="sign-toggle">+/-</button>
+                        <button data-key="sign" aria-label="Change sign">+/-</button>
                     </div>
                     <div class="backspace">
-                        <button id="backspace">⌫</button>
+                        <button data-key="backspace" aria-label="Backspace">⌫</button>
                     </div>
                     <div class="equals-button">
-                        <button id="equals">=</button>
+                        <button data-key="=" aria-label="Equals">=</button>
                     </div>
                 </div>
             </section>

@@ -1,312 +1,340 @@
 const powerToggle = document.getElementById('power-button');
 const display = document.getElementById('lcd-real');
+const displayArea = document.querySelector('.display-area');
 const calcBody = document.querySelector('section');
+const keypad = document.getElementById('all-keys');
 const themeCheckbox = document.getElementById('theme-checkbox');
-const allKeys = document.querySelectorAll(
-    '.digit button, .operator button, .clear-screen button, .decimal-point button, .equals-button button, .backspace button, .sign-toggle button',
-);
-const powerB = document.getElementById('power-button');
-const allKeysAndPower = [...allKeys, powerB];
+const allKeys = keypad.querySelectorAll('button[data-key]:not(#power-button)');
 
-let powerOn = false;
-let decimalFirst = false;
-let decimalSecond = false;
-let operatorFound = false;
-let calcDone = false;
-let lastOp = '';
-let lastOperand = '';
-let operators = ['+', '-', '*', '/'];
+const MAX_DIGITS = 12; // characters the LCD can show
+const OPERATORS = ['+', '-', '*', '/'];
 const welcomeStr = 'WELCOME';
 const goodbyeStr = 'GOODBYE';
-const MAX_DIGITS = 12;
+
+let powerOn = false;
+let busy = false; // true while WELCOME / GOODBYE is animating
+
+// The calculation is kept as separate parts; the display is drawn from them
+const calc = {
+    first: null, // the number before the operator, as a string
+    op: null,
+    current: '', // the number being typed, as a string
+    justEvaluated: false, // the display shows a result
+    error: null,
+    lastOp: null, // for pressing = again to repeat the last operation
+    lastOperand: null,
+};
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-allKeys.forEach((key) => key.classList.add('disabled-keys'));
-powerToggle.classList.add('red-key');
-calcBody.classList.add('powered-off');
-display.textContent = '';
-
-function toggleAllKeys() {
-    allKeys.forEach((key) => {
-        key.classList.toggle('disabled-keys', !powerOn);
-        key.classList.toggle('active-keys', powerOn);
+function resetCalc() {
+    Object.assign(calc, {
+        first: null,
+        op: null,
+        current: '',
+        justEvaluated: false,
+        error: null,
+        lastOp: null,
+        lastOperand: null,
     });
 }
 
-async function initializeCalculator() {
-    powerOn = true;
-    operatorFound = false;
-    decimalFirst = false;
-    decimalSecond = false;
-    calcDone = false;
-    lastOp = '';
-    lastOperand = '';
-    await showWelcome();
-    calcBody.classList.remove('powered-off');
-    powerToggle.classList.remove('red-key');
-    powerToggle.classList.add('green-key');
-    toggleAllKeys();
-    display.textContent = '_';
+function expressionText() {
+    return (calc.first ?? '') + (calc.op ?? '') + calc.current;
 }
 
-async function showWelcome() {
-    for (let i = 0; i <= welcomeStr.length; i++) {
-        display.textContent = welcomeStr.slice(0, i);
-        await sleep(300);
+function render() {
+    display.textContent = calc.error ?? (expressionText() || '_');
+}
+
+// Briefly shake the display when a key can't be accepted, so it isn't ignored silently
+function reject() {
+    displayArea.classList.remove('reject');
+    void displayArea.offsetWidth;
+    displayArea.classList.add('reject');
+}
+
+function flashResult() {
+    display.classList.remove('flash');
+    void display.offsetWidth;
+    display.classList.add('flash');
+}
+
+// Fit a number into the LCD: up to 12 significant digits, dropping precision
+// (or switching to 1.23E45 form) only when it wouldn't otherwise fit
+function formatNumber(value) {
+    for (let precision = 12; precision >= 1; precision--) {
+        const plain = String(Number(value.toPrecision(precision)));
+        if (plain.length <= MAX_DIGITS && !plain.includes('e')) return plain;
     }
-    await sleep(1000);
+    for (let digits = 10; digits >= 0; digits--) {
+        const [mantissa, exponent] = value.toExponential(digits).split('e');
+        const scientific = mantissa.replace(/\.?0+$/, '') + 'E' + exponent.replace('+', '');
+        if (scientific.length <= MAX_DIGITS) return scientific;
+    }
+    return null;
 }
 
-async function showGoodbye() {
-    for (let i = 0; i <= goodbyeStr.length; i++) {
-        display.textContent = '';
-        display.textContent = goodbyeStr.slice(0, i);
+function compute(a, op, b) {
+    const x = parseFloat(a);
+    const y = parseFloat(b);
+    if (op === '+') return x + y;
+    if (op === '-') return x - y;
+    if (op === '*') return x * y;
+    return x / y;
+}
+
+// Works out first op current; returns the formatted result, or null after showing an error
+function evaluate(first, op, operand) {
+    if (op === '/' && parseFloat(operand) === 0) {
+        showError('ERR: DIV 0');
+        return null;
+    }
+    const result = compute(first, op, operand);
+    const text = Number.isFinite(result) ? formatNumber(result) : null;
+    if (text === null) {
+        showError('ERR: TOO BIG');
+        return null;
+    }
+    return text;
+}
+
+function showError(message) {
+    resetCalc();
+    calc.error = message;
+    calc.justEvaluated = true;
+}
+
+function isCompleteNumber(text) {
+    return text !== '' && text !== '-' && text !== '.';
+}
+
+function inputDigit(digit) {
+    if (calc.error || calc.justEvaluated) {
+        resetCalc();
+    }
+    if (calc.current === '0' || calc.current === '-0') {
+        calc.current = calc.current.slice(0, -1) + digit; // no leading zeros
+    } else if (expressionText().length < MAX_DIGITS) {
+        calc.current += digit;
+    } else {
+        reject();
+    }
+}
+
+function inputDecimal() {
+    if (calc.error || calc.justEvaluated) {
+        resetCalc();
+    }
+    if (calc.current.includes('.')) return;
+    const addition = calc.current === '' || calc.current === '-' ? '0.' : '.';
+    if (expressionText().length + addition.length <= MAX_DIGITS) {
+        calc.current += addition;
+    } else {
+        reject();
+    }
+}
+
+function inputOperator(op) {
+    if (calc.error) return;
+
+    // Start a result on to the next calculation
+    if (calc.justEvaluated) {
+        calc.first = calc.current;
+        calc.current = '';
+        calc.op = op;
+        calc.justEvaluated = false;
+        return;
+    }
+
+    // A minus with nothing typed yet starts a negative number
+    if (op === '-' && calc.current === '' && (calc.op === null || calc.op === '*' || calc.op === '/')) {
+        if (calc.first === null || expressionText().length < MAX_DIGITS) {
+            calc.current = '-';
+        }
+        return;
+    }
+
+    if (!isCompleteNumber(calc.current)) {
+        // Changing your mind: the new operator replaces the last one
+        if (calc.op !== null) {
+            calc.current = '';
+            calc.op = op;
+        }
+        return;
+    }
+
+    if (calc.op === null) {
+        calc.first = calc.current;
+    } else {
+        // Chaining (5 + 3 + ...): work out what's there first
+        const result = evaluate(calc.first, calc.op, calc.current);
+        if (result === null) return;
+        calc.first = result;
+        flashResult();
+    }
+    calc.op = op;
+    calc.current = '';
+}
+
+function inputEquals() {
+    if (calc.error) return;
+
+    if (calc.justEvaluated) {
+        // Pressing = again repeats the last operation
+        if (calc.lastOp === null) return;
+        const result = evaluate(calc.current, calc.lastOp, calc.lastOperand);
+        if (result === null) return;
+        calc.current = result;
+        flashResult();
+        return;
+    }
+
+    if (!isCompleteNumber(calc.current)) return;
+    if (calc.op === null) {
+        // = on a lone number just finishes it, so the next digit starts afresh
+        calc.justEvaluated = true;
+        return;
+    }
+
+    const { op, current: operand } = calc;
+    const result = evaluate(calc.first, op, operand);
+    if (result === null) return;
+    Object.assign(calc, { first: null, op: null, current: result, justEvaluated: true, lastOp: op, lastOperand: operand });
+    flashResult();
+}
+
+function inputBackspace() {
+    if (calc.error || calc.justEvaluated) return;
+    if (calc.current !== '') {
+        calc.current = calc.current.slice(0, -1);
+    } else if (calc.op !== null) {
+        calc.current = calc.first;
+        calc.first = null;
+        calc.op = null;
+    }
+}
+
+function inputSignToggle() {
+    if (calc.error || !isCompleteNumber(calc.current) || parseFloat(calc.current) === 0) return;
+    if (calc.current.startsWith('-')) {
+        calc.current = calc.current.slice(1);
+    } else if (expressionText().length < MAX_DIGITS) {
+        calc.current = '-' + calc.current;
+    } else {
+        reject();
+        return;
+    }
+    if (calc.justEvaluated) {
+        // A negated result becomes a fresh number rather than repeating the last operation
+        calc.lastOp = null;
+        calc.lastOperand = null;
+    }
+}
+
+function handleKey(key) {
+    if (!powerOn || busy) return;
+    if (/^[0-9]$/.test(key)) inputDigit(key);
+    else if (OPERATORS.includes(key)) inputOperator(key);
+    else if (key === '.') inputDecimal();
+    else if (key === '=') inputEquals();
+    else if (key === 'backspace') inputBackspace();
+    else if (key === 'sign') inputSignToggle();
+    else if (key === 'clear') resetCalc();
+    render();
+}
+
+function setKeysEnabled(enabled) {
+    allKeys.forEach((key) => {
+        key.disabled = !enabled;
+        key.classList.toggle('disabled-keys', !enabled);
+        key.classList.toggle('active-keys', enabled);
+    });
+}
+
+async function typeOut(text) {
+    for (let i = 0; i <= text.length; i++) {
+        display.textContent = text.slice(0, i);
         await sleep(300);
     }
     await sleep(1000);
 }
 
 async function power() {
+    if (busy) return; // ignore presses while WELCOME / GOODBYE is running
+    busy = true;
     if (powerOn) {
         powerOn = false;
-        await showGoodbye();
+        setKeysEnabled(false);
+        await typeOut(goodbyeStr);
         calcBody.classList.add('powered-off');
-        powerToggle.classList.remove('green-key');
-        powerToggle.classList.add('red-key');
-        toggleAllKeys();
+        powerToggle.classList.replace('green-key', 'red-key');
+        powerToggle.setAttribute('aria-pressed', 'false');
         display.textContent = '';
-    } else await initializeCalculator();
+    } else {
+        powerOn = true;
+        resetCalc();
+        await typeOut(welcomeStr);
+        calcBody.classList.remove('powered-off');
+        powerToggle.classList.replace('red-key', 'green-key');
+        powerToggle.setAttribute('aria-pressed', 'true');
+        setKeysEnabled(true);
+        render();
+    }
+    busy = false;
 }
 
-allKeysAndPower.forEach((b) => {
-    b.addEventListener('click', (e) => {
-        if (e.target.tagName !== 'BUTTON') return;
-
-        const targetButton = e.target.innerText;
-
-        if (targetButton === '⏻') power();
-        else if (targetButton === 'C') handleClear();
-        else if (targetButton === '⌫') handleBackspace();
-        else if (targetButton === '+/-') handleSignToggle();
-        else handleDigitClick(targetButton);
-    });
+keypad.addEventListener('click', (e) => {
+    const button = e.target.closest('button[data-key]');
+    if (!button) return;
+    if (button.dataset.key === 'power') power();
+    else handleKey(button.dataset.key);
 });
 
-function handleSignToggle() {
-    const current = display.textContent;
-    if (current === '_' || current === '0' || current.startsWith('ERR')) return;
-
-    if (!operatorFound || calcDone) {
-        const negated = current.startsWith('-') ? current.slice(1) : '-' + current;
-        display.textContent = negated;
-        decimalFirst = negated.includes('.');
-        if (calcDone) {
-            calcDone = false;
-            operatorFound = false;
-            lastOp = '';
-            lastOperand = '';
-        }
-        return;
-    }
-
-    // Find main operator (skip index 0 to allow negative first number)
-    let opIndex = -1;
-    for (let i = 1; i < current.length; i++) {
-        if (operators.includes(current[i])) { opIndex = i; break; }
-    }
-    if (opIndex === -1) return;
-
-    const beforeOp = current.slice(0, opIndex + 1);
-    const afterOp = current.slice(opIndex + 1);
-    if (afterOp === '' || afterOp === '0') return;
-
-    display.textContent = afterOp.startsWith('-')
-        ? beforeOp + afterOp.slice(1)
-        : beforeOp + '-' + afterOp;
-    decimalSecond = display.textContent.slice(opIndex + 1).includes('.');
-}
-
-function handleBackspace() {
-    if (calcDone) return;
-    const current = display.textContent;
-    if (current === '_') return;
-
-    const remaining = current.slice(0, -1);
-    const removed = current.slice(-1);
-
-    if (remaining === '' || remaining === '-') {
-        display.textContent = '_';
-        operatorFound = false;
-        decimalFirst = false;
-        decimalSecond = false;
-        return;
-    }
-
-    display.textContent = remaining;
-
-    if (removed === '.') {
-        if (operatorFound) decimalSecond = false;
-        else decimalFirst = false;
-    } else if (operators.includes(removed)) {
-        const stillHasOp = [...remaining].some((c, i) => i > 0 && operators.includes(c));
-        operatorFound = stillHasOp;
-        if (!operatorFound) decimalSecond = false;
-    }
-}
-
-function handleClear() {
-    operatorFound = false;
-    decimalFirst = false;
-    decimalSecond = false;
-    calcDone = false;
-    lastOp = '';
-    lastOperand = '';
-    display.textContent = '_';
-}
+const KEYBOARD_KEYS = {
+    Enter: '=',
+    '=': '=',
+    x: '*',
+    X: '*',
+    Backspace: 'backspace',
+    Escape: 'clear',
+    Delete: 'clear',
+    c: 'clear',
+    C: 'clear',
+};
 
 document.addEventListener('keydown', (e) => {
-    if (!powerOn) return;
-    if (e.key >= '0' && e.key <= '9') handleDigitClick(e.key);
-    else if (e.key === '+' || e.key === '-' || e.key === '*') handleDigitClick(e.key);
-    else if (e.key === '/') { e.preventDefault(); handleDigitClick('/'); }
-    else if (e.key === '.') handleDigitClick('.');
-    else if (e.key === 'Enter' || e.key === '=') handleDigitClick('=');
-    else if (e.key === 'Escape' || e.key === 'c' || e.key === 'C') handleClear();
-    else if (e.key === 'Backspace') handleBackspace();
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const key = KEYBOARD_KEYS[e.key] ?? e.key;
+    if (!/^[0-9]$/.test(key) && !OPERATORS.includes(key) && !['.', '=', 'backspace', 'clear'].includes(key)) return;
+    // Stop / from opening Firefox's quick find, and Enter from also clicking a focused button
+    e.preventDefault();
+    handleKey(key);
 });
 
-function handleDigitClick(n) {
-    if (n === '÷') n = '/';
-
-    if (n === '=') {
-        if (calcDone && lastOp && lastOperand) {
-            performCalc(display.textContent + lastOp + lastOperand);
-            return;
-        }
-        const lastChar = display.textContent.slice(-1);
-        if (operatorFound && !operators.includes(lastChar)) {
-            performCalc(display.textContent);
-        }
-        return;
-    }
-
-    if (calcDone) {
-        if (!operators.includes(n)) {
-            display.textContent = n === '.' ? '0.' : n;
-            decimalFirst = n === '.';
-            operatorFound = false;
-            calcDone = false;
-            return;
-        } else {
-            calcDone = false;
-        }
-    }
-
-    if (display.textContent === '_') {
-        if (n === '-') {
-            display.textContent = '-';
-            return;
-        }
-        if (operators.includes(n)) return;
-        display.textContent = n === '.' ? '0.' : n;
-        if (n === '.') decimalFirst = true;
-        return;
-    }
-
-    if (operators.includes(n)) {
-        const lastChar = display.textContent.slice(-1);
-        let expressionLength= display.textContent.length
-        if (!operatorFound && display.textContent !== '-') {
-            display.textContent += n;
-            operatorFound = true;
-            return;
-        }
-        if (n === '-' && operatorFound && operators.includes(lastChar) && lastChar === '-') {
-            
-            display.textContent = display.textContent.slice(0, expressionLength - 1) + '+';
-            return;
-        }
-        if (n === '-' && operatorFound && operators.includes(lastChar) && lastChar === '+') {
-            display.textContent = display.textContent.slice(0, expressionLength - 1) + '-';
-            return;
-        }
-        if (n === '-' && operatorFound && operators.includes(lastChar) && lastChar !== '-') {
-            display.textContent += n;
-            return;
-        }
-        return;
-    }
-
-    if (n === '.') {
-        if (!operatorFound && !decimalFirst) {
-            display.textContent += '.';
-            decimalFirst = true;
-        } else if (operatorFound && !decimalSecond) {
-            const lastChar = display.textContent.slice(-1);
-            display.textContent += operators.includes(lastChar) ? '0.' : '.';
-            decimalSecond = true;
-        }
-        return;
-    }
-
-    if (!isNaN(n) && display.textContent.length < MAX_DIGITS) {
-        display.textContent += n;
-    }
+// Theme: remember the choice, and follow the system setting until one is made
+function applyTheme(light) {
+    document.body.classList.toggle('light-mode', light);
+    themeCheckbox.checked = light;
 }
 
-function performCalc(value) {
-    let firstNumStr = '';
-    let secondNumStr = '';
-    let op = '';
-    let opSet = false;
-    const chars = [...value];
-
-    for (let i = 0; i < chars.length; i++) {
-        if (i === 0 && chars[i] === '-') {
-            firstNumStr += chars[i];
-            continue;
-        }
-        if (operators.includes(chars[i]) && !opSet) {
-            op = chars[i];
-            opSet = true;
-            continue;
-        }
-        if (!opSet) firstNumStr += chars[i];
-        else secondNumStr += chars[i];
-    }
-
-    const n1 = parseFloat(firstNumStr);
-    const n2 = parseFloat(secondNumStr);
-    let res = 0;
-
-    if (op === '+') res = n1 + n2;
-    else if (op === '-') res = n1 - n2;
-    else if (op === '*') res = n1 * n2;
-    else if (op === '/') {
-        if (n2 === 0) {
-            display.textContent = 'ERR: DIV 0';
-            calcDone = true;
-            operatorFound = false;
-            lastOp = '';
-            lastOperand = '';
-            return;
-        }
-        res = n1 / n2;
-    }
-
-    lastOp = op;
-    lastOperand = secondNumStr;
-    display.classList.remove('flash');
-    void display.offsetWidth;
-    display.textContent = Number(res.toFixed(2)).toString();
-    display.classList.add('flash');
-    calcDone = true;
-    operatorFound = false;
-    decimalFirst = display.textContent.includes('.');
-    decimalSecond = false;
+let savedTheme = null;
+try {
+    savedTheme = localStorage.getItem('calculator-theme');
+} catch {
+    // Storage unavailable; fall back to the system setting
 }
+applyTheme(savedTheme ? savedTheme === 'light' : window.matchMedia('(prefers-color-scheme: light)').matches);
 
 themeCheckbox.addEventListener('change', () => {
-    document.body.classList.toggle('light-mode', themeCheckbox.checked);
+    applyTheme(themeCheckbox.checked);
+    try {
+        localStorage.setItem('calculator-theme', themeCheckbox.checked ? 'light' : 'dark');
+    } catch {
+        // Not saved; the toggle still works for this visit
+    }
 });
+
+setKeysEnabled(false);
+calcBody.classList.add('powered-off');
+display.textContent = '';

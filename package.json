@@ -1,24 +1,19 @@
 {
   "name": "calculator",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "description": "A retro LCD-style calculator in plain HTML, CSS and JavaScript",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "python3 -m http.server 8000 --directory src"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Quinnus/calculator-app.git"
+    "url": "git+https://github.com/Quinnus/New-Calculator.git"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/Quinnus/calculator-app/issues"
+    "url": "https://github.com/Quinnus/New-Calculator/issues"
   },
-  "homepage": "https://github.com/Quinnus/calculator-app#readme",
-  "devDependencies": {
-    "@tauri-apps/cli": "^2.11.0"
-  }
+  "homepage": "https://github.com/Quinnus/New-Calculator#readme"
 }

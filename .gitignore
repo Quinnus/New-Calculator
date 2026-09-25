@@ -1,12 +1,13 @@
-# Tauri / Rust build files
-src-tauri/target/
-src-tauri/binaries/
-
 # Node modules
 node_modules/
+
+# Editor files
+.idea/
+*.iml
 
 # OS specific files
 .DS_Store
 Thumbs.db
-.claude
-.claude/*
+
+# Claude Code
+.claude/
